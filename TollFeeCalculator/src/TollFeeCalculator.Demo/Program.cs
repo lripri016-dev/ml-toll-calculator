@@ -22,7 +22,8 @@ namespace TollFeeCalculator.Demo
                 ("Three passes same hour",  car,       new[] { CreateInterval(7, 0), CreateInterval(7, 20), CreateInterval(7, 40) }),
                 ("Morning and afternoon",   car,       new[] { CreateInterval(6, 30), CreateInterval(8, 30), CreateInterval(15, 30) }),
                 ("New Year's Day(free day)",car,       new[] { CreateInterval(7, 0).AddDays(-1) }),
-                ("Daily cap 60",            car,       new[] { CreateInterval(6, 30), CreateInterval(7, 45), CreateInterval(9, 30), CreateInterval(11, 30), CreateInterval(13, 30), CreateInterval(15, 30), CreateInterval(17, 15) })
+                ("Daily cap 60",            car,       new[] { CreateInterval(6, 30), CreateInterval(7, 45), CreateInterval(9, 30), CreateInterval(11, 30), CreateInterval(13, 30), CreateInterval(15, 30), CreateInterval(17, 15) }),
+                ("Disordered daily cap 60", car,       new[] { CreateInterval(11, 30), CreateInterval(13, 30), CreateInterval(6, 30), CreateInterval(7, 45), CreateInterval(9, 30), CreateInterval(15, 30), CreateInterval(17, 15) })
             };
 
             foreach (var (name, vehicle, dates) in examples)
