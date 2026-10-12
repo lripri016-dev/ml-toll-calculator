@@ -7,4 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TollFeeCalculator.Core\TollFeeCalculator.Core.csproj" />
+  </ItemGroup>
+
 </Project>
