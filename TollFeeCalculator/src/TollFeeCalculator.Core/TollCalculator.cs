@@ -13,15 +13,15 @@ public class TollCalculator
 
     public int GetTollFee(Vehicle vehicle, DateTime[] dates)
     {
-        DateTime intervalStart = dates[0];
+        DateTime intervalStart = dates[0];  // the first date in the array is the start of the interval
         int totalFee = 0;
         foreach (DateTime date in dates)
         {
             int nextFee = GetTollFee(date, vehicle);
             int tempFee = GetTollFee(intervalStart, vehicle);
 
-            long diffInMillies = date.Millisecond - intervalStart.Millisecond;
-            long minutes = diffInMillies/1000/60;
+            TimeSpan timeSinceWindowStart = date - intervalStart;   // FIX-2: DateTime.Millisecond is only the 0-999 sub-second component
+            double minutes = timeSinceWindowStart.TotalMinutes;     // real minutes between this pass and the previous one
 
             if (minutes <= 60)
             {
@@ -33,6 +33,10 @@ public class TollCalculator
             {
                 totalFee += nextFee;
             }
+
+            // FIX-3 the window is sliding. Each pass is compared with the previous
+            // pass, not always with the first pass of the day (intervalStart was never updated)
+            intervalStart = date;
         }
         if (totalFee > 60) totalFee = 60;
         return totalFee;
