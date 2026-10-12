@@ -2,6 +2,11 @@
 
 public class TollCalculator
 {
+    /// <summary>No vehicle pays more than 60 SEK per day.</summary>
+    private const int MaxDailyFee = 60;
+
+    /// <summary>Passes at most 60 minutes apart are charged as one.</summary>
+    private const int WindowMinutes = 60;
 
     /**
      * Calculate the total toll fee for one day
@@ -10,9 +15,13 @@ public class TollCalculator
      * @param dates   - date and time of all passes on one day
      * @return - the total toll fee for that day
      */
-
-    public int GetTollFee(Vehicle vehicle, DateTime[] dates)
+    public int GetTollFee(IVehicle vehicle, DateTime[] dates)
     {
+        ArgumentNullException.ThrowIfNull(vehicle);
+        ArgumentNullException.ThrowIfNull(dates);
+
+        if (dates.Length == 0) return 0;
+
         DateTime intervalStart = dates[0];  // the first date in the array is the start of the interval
         int totalFee = 0;
         foreach (DateTime date in dates)
@@ -23,7 +32,7 @@ public class TollCalculator
             TimeSpan timeSinceWindowStart = date - intervalStart;   // FIX-2: DateTime.Millisecond is only the 0-999 sub-second component
             double minutes = timeSinceWindowStart.TotalMinutes;     // real minutes between this pass and the previous one
 
-            if (minutes <= 60)
+            if (minutes <= WindowMinutes)
             {
                 if (totalFee > 0) totalFee -= tempFee;
                 if (nextFee >= tempFee) tempFee = nextFee;
@@ -38,25 +47,15 @@ public class TollCalculator
             // pass, not always with the first pass of the day (intervalStart was never updated)
             intervalStart = date;
         }
-        if (totalFee > 60) totalFee = 60;
-        return totalFee;
+
+        return totalFee > MaxDailyFee ? MaxDailyFee : totalFee;
     }
 
-    private bool IsTollFreeVehicle(Vehicle vehicle)
+    public int GetTollFee(DateTime date, IVehicle vehicle)
     {
-        if (vehicle == null) return false;
-        String vehicleType = vehicle.GetVehicleType();
-        return vehicleType.Equals(TollFreeVehicles.Motorbike.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Tractor.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Emergency.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Diplomat.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Foreign.ToString()) ||
-               vehicleType.Equals(TollFreeVehicles.Military.ToString());
-    }
+        ArgumentNullException.ThrowIfNull(vehicle);
 
-    public int GetTollFee(DateTime date, Vehicle vehicle)
-    {
-        if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
+        if (IsTollFreeDate(date) || vehicle.IsTollFree()) return 0;
 
         int hour = date.Hour;
         int minute = date.Minute;
@@ -98,13 +97,4 @@ public class TollCalculator
         return false;
     }
 
-    private enum TollFreeVehicles
-    {
-        Motorbike = 0,
-        Tractor = 1,
-        Emergency = 2,
-        Diplomat = 3,
-        Foreign = 4,
-        Military = 5
-    }
 }

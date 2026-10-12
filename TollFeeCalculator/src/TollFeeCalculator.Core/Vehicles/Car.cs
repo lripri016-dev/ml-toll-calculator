@@ -1,10 +1,10 @@
 ﻿namespace TollFeeCalculator.Core.Vehicles
 {
-    public class Car : Vehicle
+    /// <summary>
+    /// An ordinary passenger car: it always pays toll.
+    /// </summary>
+    public class Car : IVehicle
     {
-        public String GetVehicleType()
-        {
-            return "Car";
-        }
+        public bool IsTollFree() => false;
     }
 }

@@ -1,10 +1,12 @@
 ﻿namespace TollFeeCalculator.Core.Vehicles
 {
-    public class Motorbike : Vehicle
+    /// <summary>
+    /// A motorbike: toll-free under the system rules.
+    /// The exemption lives here (and not in the calculator) so adding a new exempt
+    /// category - Tractor, Emergency, Diplomat... - is just a new class.
+    /// </summary>
+    public class Motorbike : IVehicle
     {
-        public string GetVehicleType()
-        {
-            return "Motorbike";
-        }
+        public bool IsTollFree() => true;
     }
 }
