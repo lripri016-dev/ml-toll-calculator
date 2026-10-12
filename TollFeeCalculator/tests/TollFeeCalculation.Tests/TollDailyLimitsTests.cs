@@ -50,6 +50,22 @@ namespace TollFeeCalculator.Tests
             Assert.Equal(31, fee);   // It returned 18 now returned 31 = 18 + 13 ---> FIX-2
         }
 
+
+        [Fact]
+        public void PassesMoreThanOneHourApart_AreChargedSeparately_WithTimePassesDescendingOrder()
+        {
+            var passes = new[]
+            {
+                new DateTime(2013, 1, 2, 8, 5, 0),   // 8:00 - 8:59 => 13 SEK, 65 minutes before => -65 minutes => if (minutes <= WindowMinutes) 
+                new DateTime(2013, 1, 2, 7, 0, 0),   // 7:00 - 7:59 => 18 SEK
+                
+            };
+
+            int fee = _calculator.GetTollFee(new Car(), passes);
+
+            Assert.Equal(31, fee);   // It returned 18 now returned 31 = 18 + 13 ---> FIX-4 The previous code was returning negative minutes when the dates were not in order, which caused incorrect fee calculations.
+        }
+
         // (DateTime.Millisecond)
         // The old code used the 0-999 sub-second components, whose difference here is -400 ms,
         // so it saw "no time passed" although two hours separate the passes.
@@ -134,6 +150,25 @@ namespace TollFeeCalculator.Tests
 
             Assert.Equal(60, _calculator.GetTollFee(new Car(), passes));
             // old code returned 18 ---> The milliseconds FIX-1 solves it. Before if(minutes<=60) was always true because of the millisecond bug, so it merged all seven passes into one window and returned the highest fee of 18.
+        }
+
+        [Fact]
+        public void DailyFee_IsCappedAt60_WithTimePassesDisorderedAndDescending()
+        {
+            var passes = new[]
+            {
+                new DateTime(2013, 1, 2, 8, 6, 0),    // 13 SEK 
+                new DateTime(2013, 1, 2, 11, 9, 0),   //  8 SEK 
+                new DateTime(2013, 1, 2, 10, 8, 0),   //  8 SEK
+                new DateTime(2013, 1, 2, 9, 7, 0),    //  8 SEK
+                new DateTime(2013, 1, 2, 13, 11, 0),  //  8 SEK 
+                new DateTime(2013, 1, 2, 12, 10, 0),  //  8 SEK
+                new DateTime(2013, 1, 2, 7, 5, 0),    // 18 SEK
+            };
+
+            Assert.Equal(60, _calculator.GetTollFee(new Car(), passes));
+            // old code returned 39 ---> FIX-4 The previous code was returning negative minutes when the dates were not in order, which caused incorrect fee calculations.
+
         }
     }
 }

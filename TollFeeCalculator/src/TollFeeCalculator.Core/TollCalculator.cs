@@ -22,16 +22,20 @@ public class TollCalculator
         ArgumentNullException.ThrowIfNull(dates);
 
         if (dates.Length == 0) return 0;
-
-        DateTime intervalStart = dates[0];  // the first date in the array is the start of the interval
+        
+        DateTime intervalStart = dates[0];            // the first date in the array is the start of the interval
         int totalFee = 0;
         foreach (DateTime date in dates)
         {
             int nextFee = GetTollFee(date, vehicle);
             int tempFee = GetTollFee(intervalStart, vehicle);
 
-            TimeSpan timeSinceWindowStart = date - intervalStart;   // FIX-2: DateTime.Millisecond is only the 0-999 sub-second component
-            double minutes = timeSinceWindowStart.TotalMinutes;     // real minutes between this pass and the previous one
+            TimeSpan timeSinceWindowStart = date - intervalStart;           // FIX-2: DateTime.Millisecond is only the 0-999 sub-second component
+                                                                            // real minutes between this pass and the previous one
+                                                                            // FIX-4: Taking the absolute value of the minutes will always be positive and solve the problem of unordered dates.
+                                                                            // The previous code was returning negative minutes when the dates were not in order, which caused incorrect fee calculations.
+                                                                            // Case of unordered dates: Pass1 8:05 (13) -> Pass2 7:00 (18) => old code returned -65 minutes => Fee=18 SEK (error) It should be 13+18=31 SEK
+            double minutes = Math.Abs(timeSinceWindowStart.TotalMinutes);   // Another possibility is to order dates array in ascending order: dates = [.. dates.OrderBy(d => d)];
 
             if (minutes <= WindowMinutes)
             {
